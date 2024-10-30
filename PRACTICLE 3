@@ -1,0 +1,135 @@
+#include <iostream>
+
+using namespace std;
+
+struct Edge {
+    int src, dest, weight;
+};
+
+struct Graph {
+    int V, E;
+    Edge* edges;
+
+    Graph(int vertices, int edgesCount) {
+        V = vertices;
+        E = edgesCount;
+        edges = new Edge[E];
+    }
+
+    ~Graph() {
+        delete[] edges;
+    }
+};
+
+// Disjoint Set Union (DSU) or Union-Find structure
+class DSU {
+private:
+    int *parent, *rank;
+    int n;
+
+public:
+    DSU(int size) {
+        n = size;
+        parent = new int[n];
+        rank = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+        }
+    }
+
+    ~DSU() {
+        delete[] parent;
+        delete[] rank;
+    }
+
+    int find(int u) {
+        if (u != parent[u]) {
+            parent[u] = find(parent[u]);
+        }
+        return parent[u];
+    }
+
+    void unite(int u, int v) {
+        int rootU = find(u);
+        int rootV = find(v);
+
+        if (rootU != rootV) {
+            if (rank[rootU] < rank[rootV]) {
+                parent[rootU] = rootV;
+            } else if (rank[rootU] > rank[rootV]) {
+                parent[rootV] = rootU;
+            } else {
+                parent[rootV] = rootU;
+                rank[rootU]++;
+            }
+        }
+    }
+};
+
+// Manual sorting function (Bubble Sort) to sort edges by weight
+void bubbleSortEdges(Edge edges[], int E) {
+    for (int i = 0; i < E - 1; i++) {
+        for (int j = 0; j < E - i - 1; j++) {
+            if (edges[j].weight > edges[j + 1].weight) {
+                Edge temp = edges[j];
+                edges[j] = edges[j + 1];
+                edges[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void kruskalMST(Graph &graph) {
+    int V = graph.V;
+    Edge* edges = graph.edges;
+    int E = graph.E;
+
+    // Sort edges by weight
+    bubbleSortEdges(edges, E);
+
+    DSU dsu(V);
+
+    Edge* mst = new Edge[V - 1];
+    int mstWeight = 0;
+    int mstIndex = 0;
+
+    for (int i = 0; i < E && mstIndex < V - 1; i++) {
+        Edge edge = edges[i];
+        int u = edge.src;
+        int v = edge.dest;
+
+        // Check if including this edge forms a cycle
+        if (dsu.find(u) != dsu.find(v)) {
+            dsu.unite(u, v);
+            mst[mstIndex++] = edge;
+            mstWeight += edge.weight;
+        }
+    }
+
+    // Display the MST
+    cout << "Edges in the Minimum Spanning Tree:\n";
+    for (int i = 0; i < mstIndex; i++) {
+        cout << mst[i].src << " -- " << mst[i].dest << " == " << mst[i].weight << endl;
+    }
+    cout << "Total weight of MST: " << mstWeight << endl;
+
+    delete[] mst;
+}
+
+int main() {
+    int V, E;
+    cout << "Enter the number of vertices and edges: ";
+    cin >> V >> E;
+
+    Graph graph(V, E);
+
+    cout << "Enter each edge (source, destination, weight):\n";
+    for (int i = 0; i < E; i++) {
+        cin >> graph.edges[i].src >> graph.edges[i].dest >> graph.edges[i].weight;
+    }
+
+    kruskalMST(graph);
+
+    return 0;
+}
