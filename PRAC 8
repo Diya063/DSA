@@ -1,0 +1,109 @@
+#include <iostream>
+using namespace std;
+
+const int ALPHABET_SIZE = 26; // For lowercase letters
+const int MAX_TEXT_SIZE = 100; // Maximum size of the input text
+
+// Node class for the suffix tree
+class Node {
+public:
+    Node* children[ALPHABET_SIZE];
+    bool isEndOfWord;
+
+    Node() {
+        isEndOfWord = false;
+        for (int i = 0; i < ALPHABET_SIZE; i++) {
+            children[i] = nullptr;
+        }
+    }
+
+    ~Node() {
+        for (int i = 0; i < ALPHABET_SIZE; i++) {
+            if (children[i] != nullptr) {
+                delete children[i];
+            }
+        }
+    }
+};
+
+// Suffix Tree class
+class SuffixTree {
+    Node* root;
+
+public:
+    SuffixTree() {
+        root = new Node();
+    }
+
+    void insert(char text[], int start, int length) {
+        Node* current = root;
+        for (int i = start; i < length; i++) {
+            int index = text[i] - 'a'; // Get index (0-25)
+            if (index < 0 || index >= ALPHABET_SIZE) {
+                continue; // Ignore non-alphabetic characters
+            }
+
+            if (current->children[index] == nullptr) {
+                current->children[index] = new Node();
+            }
+            current = current->children[index];
+        }
+        current->isEndOfWord = true;
+    }
+
+    void buildTree(char text[], int length) {
+        for (int i = 0; i < length; i++) {
+            insert(text, i, length);
+        }
+    }
+
+    bool search(char pattern[], int patternLength) {
+        Node* current = root;
+        for (int i = 0; i < patternLength; i++) {
+            int index = pattern[i] - 'a';
+            if (index < 0 || index >= ALPHABET_SIZE || current->children[index] == nullptr) {
+                return false;
+            }
+            current = current->children[index];
+        }
+        return true;
+    }
+
+    ~SuffixTree() {
+        delete root;
+    }
+};
+
+int main() {
+    char text[MAX_TEXT_SIZE];
+    char pattern[MAX_TEXT_SIZE];
+
+    cout << "Enter the text (lowercase letters only): ";
+    cin >> text;
+
+    // Calculate text length manually
+    int textLength = 0;
+    while (text[textLength] != '\0') {
+        textLength++;
+    }
+
+    SuffixTree tree;
+    tree.buildTree(text, textLength);
+
+    cout << "Enter the pattern to search: ";
+    cin >> pattern;
+
+    // Calculate pattern length manually
+    int patternLength = 0;
+    while (pattern[patternLength] != '\0') {
+        patternLength++;
+    }
+
+    if (tree.search(pattern, patternLength)) {
+        cout << "Pattern found in the text!" << endl;
+    } else {
+        cout << "Pattern not found in the text." << endl;
+    }
+
+    return 0;
+}
