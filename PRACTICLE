@@ -68,3 +68,81 @@ int main() {
     return 0;
 
 //PRAC2
+#include <iostream>
+#include <cstdlib> // for rand()
+#include <ctime>   // for srand(time(0))
+
+using namespace std;
+
+// Function to swap two elements
+void swap(int &a, int &b) {
+    int temp = a;
+    a = b;
+    b = temp;
+}
+
+// Partition function for Randomized Select
+int partition(int arr[], int low, int high) {
+    // Randomly choose a pivot and swap it with the last element
+    int randomPivot = low + rand() % (high - low + 1);
+    swap(arr[randomPivot], arr[high]);
+
+    int pivot = arr[high];
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+// Randomized Select function to find the ith smallest element
+int randomizedSelect(int arr[], int low, int high, int i) {
+    if (low == high) {
+        return arr[low];
+    }
+
+    int pivotIndex = partition(arr, low, high);
+    int k = pivotIndex - low + 1; // Number of elements in the left partition
+
+    if (i == k) { // Pivot is the ith smallest element
+        return arr[pivotIndex];
+    } else if (i < k) { // Search in the left part
+        return randomizedSelect(arr, low, pivotIndex - 1, i);
+    } else { // Search in the right part
+        return randomizedSelect(arr, pivotIndex + 1, high, i - k);
+    }
+}
+
+int main() {
+    srand(time(0)); // Initialize random seed
+
+    int n, i;
+    cout << "Enter the number of elements: ";
+    cin >> n;
+
+    int arr[n];
+    cout << "Enter the elements: ";
+    for (int j = 0; j < n; j++) {
+        cin >> arr[j];
+    }
+
+    cout << "Enter the value of i (to find the ith smallest element): ";
+    cin >> i;
+
+    if (i < 1 || i > n) {
+        cout << "Invalid value of i. It should be between 1 and " << n << ".\n";
+    } else {
+        int result = randomizedSelect(arr, 0, n - 1, i);
+        cout << "The " << i << "th smallest element is: " << result << endl;
+    }
+
+    return 0;
+}
+
+\\PRAC3
+
