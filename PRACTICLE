@@ -145,4 +145,130 @@ int main() {
 }
 
 \\PRAC3
+#include <iostream>
+
+using namespace std;
+
+// Class to represent an edge
+class Edge {
+public:
+    int src, dest, weight;
+
+    Edge() : src(0), dest(0), weight(0) {}
+    Edge(int s, int d, int w) : src(s), dest(d), weight(w) {}
+};
+
+// Disjoint Set Union (Union-Find) structure
+class DSU {
+private:
+    int* parent;
+    int* rank;
+
+public:
+    DSU(int size) {
+        parent = new int[size];
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i; // Each node is its own parent initially
+            rank[i] = 0;   // Rank is zero for all nodes initially
+        }
+    }
+
+    ~DSU() {
+        delete[] parent;
+        delete[] rank;
+    }
+
+    // Find the representative of the set (with path compression)
+    int find(int u) {
+        if (u != parent[u]) {
+            parent[u] = find(parent[u]); // Path compression
+        }
+        return parent[u];
+    }
+
+    // Union of two sets
+    void unite(int u, int v) {
+        int rootU = find(u);
+        int rootV = find(v);
+
+        if (rootU != rootV) {
+            if (rank[rootU] < rank[rootV]) {
+                parent[rootU] = rootV;
+            } else if (rank[rootU] > rank[rootV]) {
+                parent[rootV] = rootU;
+            } else {
+                parent[rootV] = rootU;
+                rank[rootU]++;
+            }
+        }
+    }
+};
+
+// Manual sorting function (Bubble Sort) to sort edges by weight
+void bubbleSortEdges(Edge* edges, int E) {
+    for (int i = 0; i < E - 1; i++) {
+        for (int j = 0; j < E - i - 1; j++) {
+            if (edges[j].weight > edges[j + 1].weight) {
+                Edge temp = edges[j];
+                edges[j] = edges[j + 1];
+                edges[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// Function to implement Kruskal's Algorithm
+void kruskalMST(int V, int E, Edge* edges) {
+    // Sort edges by weight
+    bubbleSortEdges(edges, E);
+
+    DSU dsu(V);
+    Edge* mst = new Edge[V - 1];
+    int mstWeight = 0;
+    int mstIndex = 0;
+
+    for (int i = 0; i < E && mstIndex < V - 1; i++) {
+        Edge edge = edges[i];
+        int u = edge.src;
+        int v = edge.dest;
+
+        // Check if adding this edge forms a cycle
+        if (dsu.find(u) != dsu.find(v)) {
+            dsu.unite(u, v);
+            mst[mstIndex++] = edge;
+            mstWeight += edge.weight;
+        }
+    }
+
+    // Display the MST
+    cout << "Edges in the Minimum Spanning Tree:\n";
+    for (int i = 0; i < mstIndex; i++) {
+        cout << mst[i].src << " -- " << mst[i].dest << " == " << mst[i].weight << endl;
+    }
+    cout << "Total weight of MST: " << mstWeight << endl;
+
+    delete[] mst;
+}
+
+int main() {
+    int V, E;
+    cout << "Enter the number of vertices and edges: ";
+    cin >> V >> E;
+
+    Edge* edges = new Edge[E];
+    cout << "Enter each edge (source, destination, weight):\n";
+    for (int i = 0; i < E; i++) {
+        int src, dest, weight;
+        cin >> src >> dest >> weight;
+        edges[i] = Edge(src, dest, weight);
+    }
+
+    kruskalMST(V, E, edges);
+
+    delete[] edges;
+    return 0;
+}
+
+\\PRAC4
 
